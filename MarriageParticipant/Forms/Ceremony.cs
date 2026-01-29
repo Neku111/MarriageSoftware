@@ -19,6 +19,9 @@ namespace MarriageParticipant
         }
 
 
+        private string[] quarrels = [];
+        private bool buggin = false;
+
         private bool ceremonyValid = false;
 
         private bool recievedNumber = false;
@@ -309,6 +312,9 @@ namespace MarriageParticipant
 
         private void Ceremony_Load(object sender, EventArgs e)
         {
+            quarrels = Environment.GetCommandLineArgs();
+            HandleQuarrels();
+
             if (!ceremonyValid)
             {
                 Debug.WriteLine($"Could not connect to marriage: ceremony is not valid: [{CeremonyInfo.ipPort}]");
@@ -338,6 +344,34 @@ namespace MarriageParticipant
                 ceremonyValid = false;
                 return;
             }
+        }
+
+        private void HandleQuarrels()
+        {
+            Debug.WriteLine("Handling Quarrels");
+
+            if (quarrels.Length <= 0) return;
+
+            StringBuilder sb = new();
+
+            foreach (string q in quarrels)
+            {
+                switch (q)
+                {
+                    case "bug":
+                        buggin = true;
+                        Text = "BUGTACULAR CEREMONY";
+                        break;
+
+
+                    default:
+                        sb.AppendLine($"\n{q}\n is not a valid quarrel");
+                        break;
+                }
+            }
+
+            Debug.WriteLine(sb.ToString());
+            Debug.WriteLine("Quarrels Handled");
         }
 
         private void Client_OnDataReceived(object? sender, SuperSimpleTcp.DataReceivedEventArgs e)
@@ -575,6 +609,9 @@ namespace MarriageParticipant
 
         private void Ceremony_KeyDown(object sender, KeyEventArgs e)
         {
+            if (!buggin)
+                return;
+
             if (!e.KeyCode.ToString().StartsWith('F'))
                 return;
 
