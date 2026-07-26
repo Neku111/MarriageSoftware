@@ -96,7 +96,7 @@
             spouseLabel.DisplayStyle = ToolStripItemDisplayStyle.Text;
             spouseLabel.Name = "spouseLabel";
             spouseLabel.RightToLeft = RightToLeft.No;
-            spouseLabel.Size = new Size(220, 20);
+            spouseLabel.Size = new Size(181, 20);
             spouseLabel.Spring = true;
             spouseLabel.Text = "Spouse = OH MY GOD OH MY GOD OH MY GOD OH MY GOD OH MY GOD OH MY GOD OH MY GOD OH MY GOD";
             spouseLabel.TextAlign = ContentAlignment.MiddleRight;

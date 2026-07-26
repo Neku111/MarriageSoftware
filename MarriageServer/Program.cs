@@ -32,7 +32,10 @@ SimpleTcpServer server = new(_ipPort);
 server.Events.ClientConnected += OnConnected;
 server.Events.ClientDisconnected += OnDisconnected;
 server.Events.DataReceived += DataReceived;
-
+server.Keepalive.EnableTcpKeepAlives = true;
+server.Keepalive.TcpKeepAliveTime = 60;
+server.Keepalive.TcpKeepAliveInterval = 30;
+server.Keepalive.TcpKeepAliveInterval = 2;
 server.Start();
 OnStarted();
 
@@ -194,7 +197,7 @@ int TrySendMessage(string rawData)
     if (!connectionIDs.TryGetValue(data[1], out string? ip))
         return 2;
 
-    server.Send(ip, "MSG|" + data[2]);
+    server.Send(ip, "MSG|" + data[2].Replace(',', '\n'));
     return 0;
 }
 
@@ -239,21 +242,21 @@ void RequestMarry(string selfIP, string partnerName)
         return;
     }
 
-    ConfirmMarry(selfIP, self.name, partnerID, partnerName);
+    ConfirmMarry(selfIP, partnerID);
 }
 
-void ConfirmMarry(string selfIP, string selfName, string partnerIP, string partnerName)
+void ConfirmMarry(string selfIP, string partnerIP)
 {
     Console.WriteLine("Marriage Confirmed!");
     Console.WriteLine("Manifesting and Sending Certificate to Participants Involved");
 
     StringBuilder sb = new("CMARRY|");
     sb.Append(GetCertificateTemplate());
-    sb.Append(';');
-    sb.Append(selfName);
-    sb.Append(';');
-    sb.Append(partnerName);
-    sb.Append(';');
+    sb.Append(',');
+    sb.Append(participants[selfIP]);
+    sb.Append(',');
+    sb.Append(participants[partnerIP]);
+    sb.Append(',');
     sb.Append(DateTime.UtcNow);
     sb.Append(" UTC");
 

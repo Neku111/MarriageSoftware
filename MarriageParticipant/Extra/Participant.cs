@@ -9,6 +9,11 @@ namespace MarriageParticipant.Extra
         public int number = number;
 
 
+        public int GetFrequency()
+        {
+            return (Math.Abs(GetHashCode()) % 32731) + 37;
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new(name);

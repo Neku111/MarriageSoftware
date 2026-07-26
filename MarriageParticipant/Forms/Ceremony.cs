@@ -32,7 +32,7 @@ namespace MarriageParticipant
         private List<Button> buttonMap = [];
 
         delegate void d_UpdateButton(Button btn, Participant p);
-        delegate void d_RemoveButton(Button p);
+        delegate void d_RemoveButton(Button btn);
 
         delegate void d_AddToPanel(Button btn);
         delegate void d_RemoveFromPanel(Button btn);
@@ -59,7 +59,7 @@ namespace MarriageParticipant
                 SetInfoText("NO SEREMONYFOUND");
                 SetDebugText("THE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\n");
                 SetStatusText("gungry for lovw");
-                SetSpouseLabel("TERROR");
+                SetSpouseLabel("TERROR", Color.Red);
                 ceremonyValid = false;
                 return;
             }
@@ -115,8 +115,7 @@ namespace MarriageParticipant
         {
             if (idx >= buttonMap.Count)
             {
-                Debug.WriteLine($"Could Not Update Button: Index [{idx}] is out of range");
-                return;
+                Debug.WriteLine($"Could Not Update Button: Index [{idx}] is out of range"); return;
             }
 
             UpdateButton(buttonMap[idx], CeremonyInfo.participants[idx]);
@@ -257,7 +256,7 @@ namespace MarriageParticipant
 
         private void RemoveButton(Button btn)
         {
-            if (btn is null)
+            if (btn == null)
             {
                 Debug.WriteLine($"Could Not Remove Button: Button is null");
                 return;
@@ -271,7 +270,6 @@ namespace MarriageParticipant
             }
 
             RemoveFromPanel(btn);
-
             buttonMap.Remove(btn);
             btn.Dispose();
         }
@@ -279,18 +277,32 @@ namespace MarriageParticipant
         private void marryButton_Click(object? sender, EventArgs e)
         {
             if (sender is not Button btn) return;
-            RequestMarry(btn.Text);
-        }
 
-        private void RequestMarry(string partner)
-        {
-            if (!canMarry)
+            int idx = buttonMap.IndexOf(btn);
+            if (idx < 0)
             {
-                CreateButton(new("XXXXXIT [IS] OVEROVEROVEROVEROVEROVERFIREBRICK", Color.Firebrick));
+                Debug.WriteLine($"Could not marry participant: Could not find button in button map");
                 return;
             }
 
-            client.Send($"RMARRY|{partner}");
+            if (idx >= CeremonyInfo.participants.Length || !canMarry)
+            {
+                CreateButton(new("XXXXXIT [IS] OVEROVERXXXXX", Color.Firebrick));
+                return;
+            }
+            else
+                RequestMarry(CeremonyInfo.participants[idx]);
+        }
+
+        private void RequestMarry(Participant partner)
+        {
+            if (!canMarry)
+            {
+                CreateButton(new("XXXXXIT [IS] OVEROVEROVER", Color.Firebrick));
+                return;
+            }
+
+            client.Send($"RMARRY|{partner.name}");
         }
 
         private void UpdateButtons()
@@ -300,13 +312,15 @@ namespace MarriageParticipant
 
             int loopCount = Math.Max(buttonCount, participantCount);
 
+
             for (int i = 0; i < loopCount; i++)
             {
                 if (i >= buttonMap.Count)
                     CreateButton(CeremonyInfo.participants[i]);
                 else if (i < participantCount)
                     UpdateButton(i);
-                else RemoveButton(i);
+                else
+                    RemoveButton(i);
             }
         }
 
@@ -322,7 +336,7 @@ namespace MarriageParticipant
             }
 
             SetInfoText("going!");
-            SetSpouseLabel("TRAGEDY");
+            SetSpouseLabel("TRAGEDY", Color.Red);
 
             client.Events.Connected += Client_OnConnected;
             client.Events.Disconnected += Client_OnDisconnected;
@@ -340,10 +354,15 @@ namespace MarriageParticipant
                 SetInfoText("NO SEREMONYFOUND");
                 SetDebugText("THE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\nTHE HORRROR\n");
                 SetStatusText("gungry for lovw");
-                SetSpouseLabel("TERROR YOU ARE SCARED", false);
+                SetSpouseLabel("TERROR YOU ARE SCARED", Color.Red, false);
                 ceremonyValid = false;
                 return;
             }
+
+            client.Keepalive.EnableTcpKeepAlives = true;
+            client.Keepalive.TcpKeepAliveTime = 60;
+            client.Keepalive.TcpKeepAliveInterval = 30;
+            client.Keepalive.TcpKeepAliveInterval = 2;
         }
 
         private void HandleQuarrels()
@@ -378,9 +397,9 @@ namespace MarriageParticipant
         {
             // All data should be formatted like this: HEADER|DATA0;DATA1;etc
 
-            Debug.WriteLine($"Data Received: \"{e.Data}\"");
-
             string rawData = Encoding.UTF8.GetString(e.Data);
+
+            Debug.WriteLine($"Data Received: \"{rawData}\"");
             string[] data = rawData.Split('|');
 
             switch (data[0])
@@ -478,26 +497,80 @@ namespace MarriageParticipant
         }
 
         /// Data Format
-        /// CERTIFICATE;SELFNAME;PARTNERNAME;DATETIME
+        /// CERTIFICATE,SELFDATA,PARTNERDATA,DATETIME
         private void ConfirmMarry(string data)
         {
-            string[] dataPieces = data.Split(';');
+            string[] dataPieces = data.Split(',');
 
             Debug.WriteLine("Confirmed Marriage!");
 
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Certificate.txt");
-            File.WriteAllText(path, string.Format(dataPieces[0], dataPieces[1], dataPieces[2], dataPieces[3]));
 
+            if (!Participant.TryParse(dataPieces[1], out Participant p1))
+            {
+                Debug.WriteLine($"Could not parse 1st participant in order to confirm marriage: \"{dataPieces[1]}\"");
+                SetSpouseLabel("!!!!MYSTERY!!!!", Color.Black);
+                return;
+            }
+
+            if (!Participant.TryParse(dataPieces[2], out Participant p2))
+            {
+                Debug.WriteLine($"Could not parse 2nd participant in order to confirm marriage: \"{dataPieces[2]}\"");
+                SetSpouseLabel("!!!!MYSTERY!!!!", Color.Black);
+                return;
+            }
+
+            if (p1 == CeremonyInfo.self)
+            {
+                SetSpouseLabel(p2);
+                CeremonyInfo.spouse = p2;
+            }
+            else if (p2 == CeremonyInfo.self)
+            {
+                SetSpouseLabel(p1);
+                CeremonyInfo.spouse = p1;
+            }
+            else
+                SetSpouseLabel("!!!!MYSTERY!!!!", Color.Black);
+
+            StringBuilder sb = new();
+            sb.AppendLine(string.Format(dataPieces[0], p1.name, p2.name, dataPieces[3]));
+            #region pending
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            #endregion
+            sb.AppendLine("############################################");
+            sb.AppendLine("   SPOUSE INFO - Know who you're marrying");
+            sb.AppendLine("############################################");
+            sb.AppendLine($"NAME: {CeremonyInfo.spouse.name}");
+            sb.AppendLine($"COLOR: {CeremonyInfo.spouse.color}");
+            sb.AppendLine($"FREQUENCY: {CeremonyInfo.spouse.GetFrequency()}");
+            sb.AppendLine("############################################");
+            sb.AppendLine("  LOVE!");
+
+            File.WriteAllText(path, sb.ToString());
             Debug.WriteLine("Certificate Created To Commemorate This Special Thing!!");
 
-            if (dataPieces[1] == CeremonyInfo.self.name)
-                SetSpouseLabel(dataPieces[2]);
-            else if (dataPieces[2] == CeremonyInfo.self.name)
-                SetSpouseLabel(dataPieces[1]);
-            else
-                SetSpouseLabel("!!!!MYSTERY!!!!");
-
-            Console.Beep(123, 50);
+            Console.Beep(CeremonyInfo.spouse.GetFrequency(), 50);
         }
 
         /// Data Format
@@ -553,12 +626,19 @@ namespace MarriageParticipant
             participantCount.Text = message;
         }
 
-        private void SetSpouseLabel(string message, bool autoFormat = true)
+        private void SetSpouseLabel(Participant p, bool autoFormat = true)
+        {
+            SetSpouseLabel(p.name, p.color, autoFormat);
+        }
+
+        private void SetSpouseLabel(string message, Color color, bool autoFormat = true)
         {
             if (autoFormat)
                 spouseLabel.Text = $"Spouse = \"{message}\"";
             else
                 spouseLabel.Text = message;
+
+            spouseLabel.ForeColor = color;
         }
 
         private void Client_OnDisconnected(object? sender, ConnectionEventArgs e)
@@ -599,12 +679,6 @@ namespace MarriageParticipant
             }
 
             Close();
-        }
-
-        private void marryContext_Click(object sender, EventArgs e)
-        {
-            if (sender is not Button btn) return;
-            RequestMarry(btn.Text);
         }
 
         private void Ceremony_KeyDown(object sender, KeyEventArgs e)
